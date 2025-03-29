@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Results - PDF Promo Material Checker{% endblock %}
+
+{% block head %}
+<style>
+    .issue-card {
+        margin-bottom: 1rem;
+    }
+    .page-nav {
+        position: sticky;
+        top: 20px;
+    }
+    .text-highlight {
+        background-color: #fff3cd;
+        padding: 2px 4px;
+        border-radius: 3px;
+    }
+    .suggestion {
+        background-color: #d1e7dd;
+        padding: 2px 4px;
+        border-radius: 3px;
+    }
+    .accepted {
+        border-left: 5px solid #198754;
+    }
+    .rejected {
+        border-left: 5px solid #dc3545;
+    }
+    .pending {
+        border-left: 5px solid #ffc107;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Analysis Results: {{ filename }}</h2>
+            <div>
+                <button id="generate-report-btn" class="btn btn-success">
+                    <i class="bi bi-file-earmark-text"></i> Generate Report
+                </button>
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                    <i class="bi bi-upload"></i> Upload Another PDF
+                </a>
+            </div>
+        </div>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Page Navigation Sidebar -->
+    <div class="col-md-3">
+        <div class="card page-nav">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Pages</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for page_num in range(1, results.total_pages + 1) %}
+                    <a href="#page_{{ page_num }}" class="list-group-item list-group-item-action">
+                        Page {{ page_num }}
+                        {% set page_id = 'page_' ~ page_num %}
+                        {% set spelling_issues = results.results[page_id].analysis.spelling_grammar_issues|default([]) %}
+                        {% set formatting_issues = results.results[page_id].analysis.formatting_issues|default([]) %}
+                        {% set total_issues = spelling_issues|length + formatting_issues|length %}
+                        {% if total_issues > 0 %}
+                        <span class="badge bg-warning text-dark float-end">{{ total_issues }}</span>
+                        {% else %}
+                        <span class="badge bg-success float-end">0</span>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Summary</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Total Pages:</strong> {{ results.total_pages }}</p>
+                
+                {% set total_spelling_issues = 0 %}
+                {% set total_formatting_issues = 0 %}
+                
+                {% for page_num in range(1, results.total_pages + 1) %}
+                    {% set page_id = 'page_' ~ page_num %}
+                    {% set spelling_issues = results.results[page_id].analysis.spelling_grammar_issues|default([]) %}
+                    {% set formatting_issues = results.results[page_id].analysis.formatting_issues|default([]) %}
+                    {% set total_spelling_issues = total_spelling_issues + spelling_issues|length %}
+                    {% set total_formatting_issues = total_formatting_issues + formatting_issues|length %}
+                {% endfor %}
+                
+                <p><strong>Spelling/Grammar Issues:</strong> {{ total_spelling_issues }}</p>
+                <p><strong>Formatting Issues:</strong> {{ total_formatting_issues }}</p>
+                <p><strong>Total Issues:</strong> {{ total_spelling_issues + total_formatting_issues }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Results Content -->
+    <div class="col-md-9">
+        {% for page_num in range(1, results.total_pages + 1) %}
+            {% set page_id = 'page_' ~ page_num %}
+            {% set page_data = results.results[page_id] %}
+            {% set analysis = page_data.analysis %}
+            
+            <div id="{{ page_id }}" class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Page {{ page_num }}</h3>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Extracted Text -->
+                    <h4>Extracted Text</h4>
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <pre class="text-extracted">{{ analysis.text_extracted }}</pre>
+                        </div>
+                    </div>
+                    
+                    <!-- Spelling and Grammar Issues -->
+                    <h4>Spelling and Grammar Issues</h4>
+                    {% if analysis.spelling_grammar_issues and analysis.spelling_grammar_issues|length > 0 %}
+                        {% for issue in analysis.spelling_grammar_issues %}
+                            <div class="card issue-card {{ issue.status|default('pending') }}">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <p><strong>Found:</strong> <span class="text-highlight">{{ issue.text }}</span></p>
+                                            <p><strong>Suggestion:</strong> <span class="suggestion">{{ issue.suggestion }}</span></p>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <button class="btn btn-sm btn-success accept-btn" 
+                                                    data-page="{{ page_id }}" 
+                                                    data-type="spelling_grammar_issues" 
+                                                    data-index="{{ loop.index0 }}">
+                                                Accept
+                                            </button>
+                                            <button class="btn btn-sm btn-danger reject-btn" 
+                                                    data-page="{{ page_id }}" 
+                                                    data-type="spelling_grammar_issues" 
+                                                    data-index="{{ loop.index0 }}">
+                                                Reject
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-success">
+                            No spelling or grammar issues found.
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Formatting Issues -->
+                    <h4 class="mt-4">Formatting Issues</h4>
+                    {% if analysis.formatting_issues and analysis.formatting_issues|length > 0 %}
+                        {% for issue in analysis.formatting_issues %}
+                            <div class="card issue-card {{ issue.status|default('pending') }}">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <p><strong>Found:</strong> <span class="text-highlight">{{ issue.text }}</span></p>
+                                            <p><strong>Suggestion:</strong> <span class="suggestion">{{ issue.suggestion }}</span></p>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <button class="btn btn-sm btn-success accept-btn" 
+                                                    data-page="{{ page_id }}" 
+                                                    data-type="formatting_issues" 
+                                                    data-index="{{ loop.index0 }}">
+                                                Accept
+                                            </button>
+                                            <button class="btn btn-sm btn-danger reject-btn" 
+                                                    data-page="{{ page_id }}" 
+                                                    data-type="formatting_issues" 
+                                                    data-index="{{ loop.index0 }}">
+                                                Reject
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-success">
+                            No formatting issues found.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle accept/reject buttons
+        document.querySelectorAll('.accept-btn, .reject-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const pageId = this.getAttribute('data-page');
+                const issueType = this.getAttribute('data-type');
+                const issueIndex = parseInt(this.getAttribute('data-index'));
+                const action = this.classList.contains('accept-btn') ? 'accepted' : 'rejected';
+                
+                // Update UI
+                const issueCard = this.closest('.issue-card');
+                issueCard.classList.remove('pending', 'accepted', 'rejected');
+                issueCard.classList.add(action);
+                
+                // Send update to server
+                fetch('{{ url_for("update_suggestion") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        page_id: pageId,
+                        issue_type: issueType,
+                        issue_index: issueIndex,
+                        action: action
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        console.error('Error updating suggestion:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        });
+        
+        // Handle generate report button
+        document.getElementById('generate-report-btn').addEventListener('click', function() {
+            window.location.href = '{{ url_for("generate_report") }}';
+        });
+        
+        // Clean up when leaving the page
+        window.addEventListener('beforeunload', function() {
+            fetch('{{ url_for("cleanup") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 

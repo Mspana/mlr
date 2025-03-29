@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Home - PDF Promo Material Checker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">PDF Promotional Material Checker</h2>
+            </div>
+            <div class="card-body">
+                <p class="lead">
+                    Upload a PDF promotional document to check for spelling, grammar, and formatting issues.
+                </p>
+                
+                <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" class="mt-4">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select PDF File</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".pdf" required>
+                        <div class="form-text">Only PDF files are accepted.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-upload"></i> Upload and Analyze
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Sample PDFs Section -->
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Sample PDFs</h3>
+            </div>
+            <div class="card-body">
+                <p>Try the application with these sample promotional materials:</p>
+                <div class="d-grid gap-2">
+                    <div class="card mb-3 sample-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Lomaira Promotional Material</h5>
+                                <div>
+                                    <a href="{{ url_for('view_sample', filename='Lomaira Promotional Material.pdf') }}" 
+                                       class="btn btn-sm btn-info me-2" target="_blank">
+                                        <i class="bi bi-eye"></i> Preview
+                                    </a>
+                                    <form action="{{ url_for('use_sample') }}" method="post" class="d-inline">
+                                        <input type="hidden" name="sample_file" value="Lomaira Promotional Material.pdf">
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-check-circle"></i> Use This Sample
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-3 sample-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Qsymia Promotional Material</h5>
+                                <div>
+                                    <a href="{{ url_for('view_sample', filename='Qsymia Promotional Material_0.pdf') }}" 
+                                       class="btn btn-sm btn-info me-2" target="_blank">
+                                        <i class="bi bi-eye"></i> Preview
+                                    </a>
+                                    <form action="{{ url_for('use_sample') }}" method="post" class="d-inline">
+                                        <input type="hidden" name="sample_file" value="Qsymia Promotional Material_0.pdf">
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-check-circle"></i> Use This Sample
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-3 sample-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Zolpimist Promotional Material</h5>
+                                <div>
+                                    <a href="{{ url_for('view_sample', filename='Zolpimist Promotional Material.pdf') }}" 
+                                       class="btn btn-sm btn-info me-2" target="_blank">
+                                        <i class="bi bi-eye"></i> Preview
+                                    </a>
+                                    <form action="{{ url_for('use_sample') }}" method="post" class="d-inline">
+                                        <input type="hidden" name="sample_file" value="Zolpimist Promotional Material.pdf">
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-check-circle"></i> Use This Sample
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-text mt-2">These samples are provided for testing purposes only.</div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">How It Works</h3>
+            </div>
+            <div class="card-body">
+                <ol class="list-group list-group-numbered mb-0">
+                    <li class="list-group-item">Upload your PDF promotional material</li>
+                    <li class="list-group-item">Our system converts each page to an image</li>
+                    <li class="list-group-item">Google's Gemini AI analyzes the content for issues</li>
+                    <li class="list-group-item">Review and accept/reject suggested corrections</li>
+                    <li class="list-group-item">Generate a summary report of all issues</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
